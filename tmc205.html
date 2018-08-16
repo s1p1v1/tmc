@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html  lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>TMC v2.0.5</title>
+<script> 
+var rama = []; // массив содержимого ячеек основной памяти (по 1 байту)
+var rona = []; // массив РОН (по 16 бит)
+var cc; // значение регистра cc (счетчика команд)
+var rc; // значение регистра rc (команд)
+
+function createDiv() 
+/*
+********* Разметка GUI (шаблона html документа)**********
+*/
+{
+document.body.style.cssText= "font-family: Courier;"
+//создаём DIV (контейнер) 
+var newDiv=document.createElement("div");
+//newDiv.innerText = "base";
+newDiv.id = "base";
+newDiv.style.cssText = " \
+    width: 705px; \
+    padding: 5px; \
+    margin:5px; \
+    background:rgba(255, 234, 171, 0.5)";
+document.body.appendChild(newDiv);
+
+//создаём DIV (pane1) в DIV контейнере
+var newDiv=document.createElement("div"); 
+newDiv.innerText = "Учебная модель компьютера";
+newDiv.id = "pane1";
+newDiv.style.cssText = " \
+    font-weight: bold; \
+    background: coral; \
+    font-family: Geneva, Arial, Helvetica, sans-serif; \
+    font-size: 14pt; \
+    text-align: center; \
+";
+base.appendChild(newDiv);
+
+//создаём DIV (con) в DIV контейнере 
+var newDiv1=document.createElement("div");
+//newDiv1.innerText = "console";
+//newDiv1.innerHtml = "<br>";
+newDiv1.id = "con";
+newDiv1.style.cssFloat = "left";
+newDiv1.style.width="210px";
+newDiv1.style.padding = "5px";
+newDiv1.style.textAlign = "center";
+newDiv1.style.minHeight = "400px";
+//newDiv1.style.marginBottom ="5px";
+newDiv1.style.backgroundColor="pink";
+base.appendChild(newDiv1);
+
+//создаём DIV (ram) в DIV контейнере
+var newDiv2=document.createElement("div"); 
+//newDiv2.innerText = "ram";
+newDiv2.id = "ram";
+newDiv2.style.cssFloat = "left";
+newDiv2.style.width="375px";
+newDiv2.style.minHeight = "400px";
+newDiv2.style.padding = "5px";
+//newDiv2.style.marginLeft="5px";
+//newDiv2.style.backgroundColor="#5f5f5f";
+newDiv2.style.backgroundColor="lightblue";
+base.appendChild(newDiv2);
+
+//создаём DIV (cpu) в DIV контейнере
+var newDiv3=document.createElement("div");
+newDiv3.innerText = "CPU";
+newDiv3.id = "cpu";
+newDiv3.style.cssFloat = "left";
+newDiv3.style.width="90px";
+newDiv3.style.minHeight = "400px";
+//newDiv3.style.marginLeft="5px";
+newDiv3.style.padding = "5px";
+newDiv3.style.backgroundColor="plum";
+base.appendChild(newDiv3);
+
+//создаём DIV (alu) в DIV cpu
+var newDiv4=document.createElement("div");
+//newDiv4.innerText = "alu";
+//newDiv4.innerHtml = "alu <br>";
+newDiv4.id = "alu";
+newDiv4.style.cssText = " \
+    width: 80px; \
+    padding: 5px; \
+    line-height: 0.9; \
+    height: 300px; \
+    background:rgb(0, 234, 171)";
+cpu.appendChild(newDiv4);
+
+//создаём DIV (uu) в DIV cpu
+var newDiv5=document.createElement("div");
+//newDiv5.innerText = "uu";
+newDiv5.id = "uu";
+newDiv5.style.cssText = " \
+    width: 80px; \
+    padding: 5px; \
+    line-height: 0.1; \
+    margin-top:10px; \
+    height: 50px; \
+    background:rgb(0, 234, 171)";
+cpu.appendChild(newDiv5);
+
+//создаём DIV (pane) в DIV контейнере
+var newDiv6=document.createElement("div"); 
+//newDiv6.innerText = "pane";
+newDiv6.id = "pane";
+newDiv6.style.cssText = " \
+    margin-top: 5px; \
+    background: coral; \
+    text-align: center; \
+//    color: red; \
+//   font-weight: bold; \
+    clear: both ";
+//newDiv6.style.clear = "both";
+base.appendChild(newDiv6);
+
+//создаём DIV (mon) в DIV con
+var newDiv7=document.createElement("div");
+//newDiv7.innerText = "out";
+newDiv7.id = "mon";
+newDiv7.style.cssText = " \
+    width: 200px; \
+    height: 130px; \
+    padding: 5px; \
+    margin-top:5px; \
+    background: palegreen";
+con.appendChild(newDiv7);
+
+//создаём DIV (keyb) в DIV con
+var newDiv8=document.createElement("div");
+//newDiv8.innerText = "in";
+newDiv8.id = "keyb";
+newDiv8.style.cssText = " \
+    width: 150px; \
+    height: 225px; \
+    padding: 5px; \
+    margin-top: 10px; \
+    background: palegreen";
+con.appendChild(newDiv8);
+
+//создаём table (con) в DIV (console)
+createTable(4, 8, "tcon", mon, "00", "DISPLAY");
+tcon.style.border = "2px solid red";
+tcon.style.width = "200px";
+
+//создаём span (in) в DIV (keyb)
+x = document.createElement("SPAN");
+t = document.createTextNode("KEYBOARD");
+x.id = "in";
+x.appendChild(t);
+keyb.appendChild(x);
+var t1 = document.createElement("BR");
+y=x.appendChild(t1);
+
+//создаём textarea (tcod) в DIV (keyb)
+var newTA=document.createElement("textarea"); 
+newTA.id = "tcod";
+newTA.cols = 4;
+newTA.rows= 10;
+//newTA.name = "cod";
+newTA.style.cssText = " \
+ resize: none;\
+ required: ''; \
+ overflow-y: scroll; \
+ outline: none; \
+ margin-bottom: 5px;\
+ font-size: 14px;\
+ text-transform: uppercase;\
+  ";
+keyb.appendChild(newTA);
+//in.appendChild(newTA); не работает!?
+//как вставить таблицу в span?
+
+//создаём table (tram) в DIV (ram)
+createTable(17, 17, "tram", ram, "00", "RAM");
+
+//редактируем tram
+var r=tram.rows.length;
+var c=tram.rows[1].cells.length;
+// выделяем строки буферной памяти
+for (j=13; j < r; j++) {
+    for (i=1; i < c; i++) {
+    tram.rows[j].cells[i].style.color ="blue"
+}
+}
+// выделяем первую строку таблицы
+for (j=1; j < c; j++) { 
+var q=tram.rows[0].cells[j];
+q.innerText = (j-1).toString(16);
+q.class = "y";
+q.style.backgroundColor= 'yellow';
+q.style.alignContent = 'center';
+q.style.textTransform = "uppercase";
+}
+// выделяем первый столбец таблицы
+for (j=1; j < r; j++) { 
+var q=tram.rows[j].cells[0];
+q.innerText = ((j-1)*16).toString(16);
+q.class = "y";
+q.style.backgroundColor = 'yellow';
+q.style.textTransform = "uppercase";
+}
+
+//создаём table (ron) в DIV (cpu)
+createTable(16, 2, "ron", alu, "", "RON");
+//alu.style.border = "2px solid red";
+ron.style.alignSelf = 'center';
+
+//редактируем ron
+ron.marginTop = 5;
+r=ron.rows.length;
+c=ron.rows[0].cells.length;
+for (j=0; j < r; j++) { 
+var q1=ron.rows[j].cells[0];
+var q2=ron.rows[j].cells[1];
+q1.style.textTransform = "uppercase";
+//q1.style.alignContent = 'flex-start';
+//q1.style.alignContent = 'center';
+q1.innerText = j.toString(16)+': ';
+q2.innerText = "00";
+}
+
+//создаём P (p1) в DIV (cpu)
+var para = document.createElement("P");   // Create a <p> 
+var t = document.createTextNode("RC:");  // Create a text 
+para.id = "p1";
+para.appendChild(t);                     // Append the text to <p>
+uu.appendChild(para);
+//вставляем span (rc) в p1
+var x = document.createElement("SPAN");
+var t = document.createTextNode("0000");
+x.id = "rc";
+x.appendChild(t);
+para.appendChild(x);
+
+//создаём P (p2) в DIV (cpu)
+para = document.createElement("P");   // Create a <p> 
+t = document.createTextNode("CC:");  // Create a text 
+para.id = "p2";
+para.appendChild(t);                     // Append the text to <p>
+uu.appendChild(para);
+//вставляем span (cc) в p2
+x = document.createElement("SPAN");
+t = document.createTextNode("00");
+x.id = "cc";
+x.appendChild(t);
+para.appendChild(x);
+//document.getElementById("p1").innerHTML = "Paragraph changed!"; 
+
+//создаём кнопки в DIV (pane)
+var btn1 = document.createElement('button');
+//    btn1.onclick = f1;
+   btn1.onclick = write_code;
+var t = document.createTextNode('Запись кода в память');
+btn1.appendChild(t); 
+pane.appendChild(btn1);
+
+var btn2 = document.createElement('button');
+//   
+btn2.onclick =Ma_cycle;
+var t = document.createTextNode('Выполнить текущую команду');
+btn2.appendChild(t); 
+pane.appendChild(btn2);
+
+var btn3 = document.createElement('button');
+//    btn3.onclick = f3;
+   btn3.onclick = clear_m;
+var t = document.createTextNode('Очистить память');
+btn3.appendChild(t); 
+pane.appendChild(btn3);
+}
+
+function rama_to_tram(x,y,col)
+/* 
+Определение позиции ячейки основной памяти в таблице на форме
+  x - номер ячейки основной памяти
+  y - значение, помещаемое в ячейку
+  col - колонок в таблице
+*/
+{ 
+   r = (x - x % col) / col + 1; // номер строки в таблице по номеру ячейки
+   n = x - col * (r - 1) + 1; // номер колонки в строке по ...
+
+var st=''; // префикс из нулей у чисел в hex-формате
+if (y<16) { st = '0' }
+document.all.tram.rows[r].cells[n].innerText = st+(y.toString(16)).toUpperCase(); 
+//
+if (isNaN(y)) { 
+document.all.tram.rows[r].cells[n].innerText = '00'} 
+
+}
+
+function write_code()
+/*
+Запись программного кода в ячейки основной памяти и заполнение 
+оставшейся части массива rama нулевыми значениями
+*/
+{  
+ //alert('начало Записи кода в ОЗУ');
+var cod = document.getElementById('tcod').value; // код программы
+// alert(cod+' '+cod.length);
+var cl = cod.length; // исходная длина кода в байтах
+
+// последовательное извлечение и запись в массив rama байтов кода
+  for (j = 0; 1 <= cod.length;  j++)
+  {
+  rama[j] = parseInt(cod.substr(0,2), 16); // храним как число!!!
+
+  rama_to_tram(j,rama[j],16); // изменение таблицы на форме
+//  здесь 16 - число колонок таблицы
+//  alert('rama['+j+'] = '+rama[j]);
+  cod = cod.substring(2);
+  }
+// обнуление продолжения массива rama (16x16)
+
+ for (j = cl+1; j <= 16*16; j++) { rama[j]=0 }
+//  alert('rama['+55+'] = '+rama[55]);
+  cc = 0; // начальная установка счетчика команд
+  document.all.cc.innerText = '00';
+// обнуление массива rona (16)
+ for (j = 0; j < 16; j++) { 
+rona[j]=0;
+//document.all.ron.rows[j].cells[1].innerText = '00';
+ }
+
+}
+
+function clear_m()
+/*
+Очистка ячеек основной памяти и РОН
+*/
+{  
+ // изменение таблицы на форме
+//alert(rama.length);
+alert('Очистка ОЗУ');
+// обнуление (очистка) массива rama и  таблицы tram  (16x16)
+ for (j = 0; j < 16*16; j++) { rama[j]=0; rama_to_tram(j,'0',16) }
+
+// обнуление массива rona и таблицы ron (16)
+alert('Очистка регистров');
+ for (j = 0; j < 16; j++) { 
+rona[j]=0;
+ document.all.ron.rows[j].cells[1].innerText = '00';  
+ } 
+// обнуление cc и rc
+cc = rc = 0; 
+document.all.cc.innerText = '00';
+document.all.rc.innerText = '0000';
+
+// очиста дисплея (4Х8)
+alert('Очистка дисплея');
+for (i = 0; i < 4; i++) { 
+for (j = 0; j < 8; j++) { 
+document.all.tcon.rows[i].cells[j].innerText = '00'
+document.all.tcon.rows[i].cells[j].style.backgroundColor = 'palegreen' }
+}  
+ 
+}
+
+
+function createTable(cr, cc, tid1, tid2, inner, st) 
+{
+// Создание таблицы
+// cr - число строк
+// cc - числоколонок
+//alert(cr+cc+tid1+tid2+st);
+var newTab=document.createElement("table");
+newTab.id=tid1;
+newTab.style.border = "1px";//указывает толщину рамки таблицы 
+newTab.style.padding = 0;
+newTab.style.borderSpacing = 0;
+newTab.style.cssFloat = "center";
+
+var cap = newTab.createCaption();
+cap.innerHTML = st;
+    for (i=0; i < cr; i++) {
+    var newRow=newTab.insertRow(-1);//добавляем строку
+    var newCell = newRow.insertCell(0);//в созданной строке добавляем столбец 
+    newCell.style.width="20px";//указываем длину столбца равной 20 пикселей 
+    newCell.innerHTML= inner;
+    for (j=0; j < cc-1; j++) {
+	newCell = newRow.insertCell(-1);//добавляем ещё один столбец 
+    	newCell.style.width = 20;
+    	newCell.style.height= 10;
+	newCell.innerHTML= inner;
+	newCell.style.textAlign="center"
+       }
+    }
+tid2.appendChild(newTab);
+ }
+
+/*
+***************** реализация набора команд CPU: *****************
+*/
+
+function Mload1(x,y,z)
+/*
+1
+Загрузка в указанный РОН содержимого ячейки основной памяти
+х - номер целевого РОН
+у+z - адрес ячейки источника из основной памяти
+*/
+{  
+var val=rama[parseInt(y+z, 16)];
+//var val=rama[y+z];
+//alert(x+' '+val);
+  rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase(); 
+}
+
+function Mload2(x,y,z)
+/*
+2
+Загрузка числа в указанный РОН
+х - номер целевого РОН
+уz - записываемое hex-число
+*/
+{  
+//alert(x+' '+y+' '+z);
+var val=y+z;
+// проверка, что val -> hex ???
+//alert(val);
+  rona[x]=parseInt(val, 16);
+// изменение поля на форме
+document.all.ron.rows[x].cells[1].innerText = val.toUpperCase();
+//alert(rona[x]);
+}
+
+function Mstore(x,y,z)
+/*
+3
+Сохранение в ячейку основной памяти содержимого указанного РОН  
+х - номер РОН источника
+у+z - целевой адрес ячейки из основной памяти
+*/
+{  
+//alert(x+' '+y+' '+z);
+var val=rona[x];
+var j = parseInt(y+z, 16);
+//alert(j+' '+val);
+rama[j]=val;
+// изменение таблицы на форме
+rama_to_tram(j,val,16);
+//alert(rona[x]);
+
+}
+
+function Mmov(x,y)
+/*
+4
+Копирует содержиме указанного РОН в другой 
+х - номер РОН источника
+у - номер целевого РОН 
+*/
+{  
+//alert(x+' '+y);
+var val=rona[x];
+//alert(val);
+rona[y]=val;
+//rona[x]=0;
+// изменение поля на форме
+//alert(rona[x]+' '+ron[y]);
+
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[y].cells[1].innerText = st+val.toUpperCase();
+}
+
+function Madd(x,y,z)
+/*
+5
+суммирование содержимого указанных РОН (в дополнительном коде) с помещением 
+результата в третий 
+z - номер РОН первого слагаемого
+у - номер РОН второго слагаемого
+x - номер РОН суммы
+*/
+{  
+//alert(x+' '+y+' '+z);
+var val=rona[z]+rona[y];
+//alert(rona[z]+' '+rona[y]+' val='+val);
+var st=''; // префикс из нулей у чисел в hex-формате
+// учет переполнения
+
+if (val>255) { alert('переполнение ! '+val); val=val-256 }
+//alert(val+' '+val.toString(16));
+rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+
+// А нужно ли здесь учитывать представление отрицательных чисел?
+}
+
+function Mdiv(x,y,z)
+/*
+6
+целочисленное деление двоичных кодов чисел, хранящихся в указанных РОН с 
+сохранением результата в третьем
+z - номер РОН делителя
+у - номер РОН делимого
+x - номер РОН частного
+*/
+{  
+//alert(x+' '+y+' '+z);
+var a=rona[y];
+var b=rona[z];
+
+// проверка делителя на равенство нулю
+if (b==0) { alert('деление на ноль! '); return }
+
+var val = (a - a % b) / b; 
+//alert(val+' '+val.toString(16));
+rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+}
+
+
+function Mor(x,y,z)
+/*
+7
+поразрядное ИЛИ двоичных кодов чисел, хранящихся в указанных РОН с 
+сохранением результата в третьем
+у, z - номера сравниваемых РОН
+x - номер РОН результата
+*/
+{ 
+//alert(x+' '+y+' '+z);
+var a=rona[y];
+var b=rona[z];
+var val = a | b; 
+//alert(val+' '+val.toString(16));
+rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+}
+
+function Mand(x,y,z)
+/*
+8
+поразрядное И двоичных кодов чисел, хранящихся в указанных РОН с 
+сохранением результата в третьем
+у, z - номера сравниваемых РОН
+x - номер РОН результата сравнения
+*/
+{  
+//alert(x+' '+y+' '+z);
+var a=rona[y];
+var b=rona[z];
+var val = a & b; 
+//alert(val+' '+val.toString(16));
+rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+}
+
+function Mxor(x,y,z)
+/*
+9
+поразрядное исключающее ИЛИ двоичных кодов чисел, хранящихся в указанных РОН с 
+сохранением результата в третьем
+у, z - номера сравниваемых РОН
+x - номер РОН результата
+*/
+{  
+//alert(x+' '+y+' '+z);
+var a=rona[y];
+var b=rona[z];
+var val = a ^ b; 
+//alert(val+' '+val.toString(16));
+rona[x]=val;
+
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+}
+
+function Mrotate(x,y)
+/*
+A
+циклический поразрядный сдвиг содержимого указанного РОН вправо на заданное
+число позиций (в двоичном формате)
+x - номер РОН
+у - число позиций циклического сдвига вправо
+*/
+{  
+//alert(x+' '+y);
+var val=rona[x];
+var cod, cod1, cod2, cod3;
+//alert(val+' 1 '+val.toString(16));  
+//   cod = parseInt(val,16);
+   cod = val;
+   cod1= cod << 32-y;
+   cod2= cod1 >>> 24;
+   cod3= cod >>> y;
+   val= cod3 | cod2;
+//   val=parseInt(cod3,16);
+//alert(val+' 2 '+val.toString(16));
+rona[x]=val;
+// изменение поля на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (val<16) { st = '0' }
+val=val.toString(16);
+document.all.ron.rows[x].cells[1].innerText = st+val.toUpperCase();
+}
+
+function Mjump(x,y,z)
+/*
+B
+Переход к команде по адресу ячейки основной памяти при равенстве содержимого 
+двух РОН
+х - номер РОН, содержимое которого сравниваемого с нулевым (ron[0])
+у+z - составной адрес ячейки перехода в основной памяти
+*/
+{  
+//alert(x+' '+y+' '+z);
+var a=rona[0];
+var b=rona[x];
+if (a == b)
+{ 
+  cc=parseInt(y+z, 16);
+//var st1=''; // префикс из нулей у чисел в hex-формате
+//if (rama[cc]<16)  { st1 = '0' }
+//var st2=''; // префикс из нулей у чисел в hex-формате
+//if (rama[cc+1]<16)  { st2 = '0' }
+//  rc=st1+rama[cc]+st2+rama[cc+1];
+
+// изменение полей на форме
+var st=''; // префикс из нулей у чисел в hex-формате
+if (cc<16)  { st = '0' }
+//document.all.PC.innerText = st+pc.toString(16); 
+//document.all.RC.innerText = rc;
+//document.all.rc.innerText = rc; 
+document.all.cc.innerText = st+cc.toString(16);
+alert("условие выполнено, переход")
+}
+else { alert("условие не выполнено, идем дальше")}
+}
+
+function Mhalt()
+/*
+C
+вывод результатов (из буферной памяти) на дисплей и останов
+*/
+{  
+for (j = 192; j < 256; j=j+2) { 
+var x = (j - 192)/2;
+var r = (x - x % 8) / 8 ; // номер строки в таблице по номеру ячейки
+var n = x - 8 * r  ; // номер колонки в строке по ...
+var y = rama[j];     // код цвета знакоместа
+var z = rama[j+1];   // содержимое знакоместа
+
+if (z != undefined) { 
+st = '';
+if (z<16) { st = '0' }
+document.all.tcon.rows[r].cells[n].innerText = st+z.toString(16).toUpperCase();
+//alert(y);
+if (y != 0) { color(y,r,n); }
+}
+//alert(z)
+}
+alert('program termination');
+}
+
+function color(c,r1,n1)
+/*
+реализация цвета по коду из 8 битной палитры (256 цветов)
+*/
+{
+//alert(c);
+// 8 битный RGB цвет фона
+var r = c & 0xe0; // 3 первых бита (красный)
+var g = c & 0x1c; // с 4 по 6 биты (синий)
+var b = c & 0x3;  // 7-8 биты (зеленый)
+//alert(r+' '+g+' '+b)
+
+// 24 битный RGB цвет фона 
+// первый байт (красный) - без изменений
+g = g << 3; // второй байт (синий) - усиливаем
+var st1=st2=''; // префикс из нулей у чисел в hex-формате
+if (g<16) { st1 = '0' }
+b = b << 6; // третий байт (зеленый) - усиливаем
+if (b<16) { st2 = '0' }
+var col1 = r.toString(16)+st1+g.toString(16)+st2+b.toString(16);
+//alert(col1);
+document.all.tcon.rows[r1].cells[n1].style.backgroundColor = '#'+col1;
+
+//инверсия цвета фона для цвета символа
+var col2 = parseInt(col1, 16) ^ 0xFFFFFF | 0x1000000;
+col2 = col2.toString(16).substring(1);
+//alert(col2);
+document.all.tcon.rows[r1].cells[n1].style.color = '#'+col2;
+}
+
+/*
+**************** Командный (машинный) цикл ********************************
+*/
+
+function Ma_cycle()
+/*
+         Этапы командного цикла:
+1. чтение команды по адресу из регистра pc с записью в регистр rc
+2. инкремент значения регистра pc (на два соседних адреса)
+3. декодирование команды из регистра rc
+4. активизация выполнения команды из регистра rc
+*/
+{ 
+// этап 1
+//  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// если в rama храним числа, их нужно теперь преобразовывать в строки, но при 
+// этом команда усекается (отбрасывается незначащий 0 вначале числа)!?
+st = '';
+st1='';
+if (rama[cc]<16) { st = '0' }
+if (rama[cc+1]<16) { st1 = '0' }
+rc = st+rama[cc].toString(16)+st1+rama[cc+1].toString(16);
+//alert(cc+"-> "+rc);
+
+/*
+Здесь нужна оставновка модели, если RC пустой !!!!! 
+*/
+//if (isNaN(rc1)) { alert("Invalid command "+rc); return }
+//if (rc==0) { alert("Invalid command, rc==0"); return }
+  document.all.rc.innerText = rc;
+
+// этап 2
+  cc=cc+2;
+  var st=''; // префикс из нулей у чисел в hex-формате
+  if (cc<16)  { st = '0' }
+  //alert(st+' '+cc.toString(16));
+  document.all.cc.innerText = st+cc.toString(16); 
+
+// этап 3 (распознавание полей машинной команды)
+// перевод в числовой формат
+  var ci = parseInt(rc.charAt(0),16); 
+  var op1 = rc.charAt(1);
+  var op2 = rc.charAt(2);
+  var op3 = rc.charAt(3);
+
+// этап 4 (инициализация текущей команды)
+  if (ci == 1) { alert("LOAD1"); Mload1(parseInt(op1,16),op2,op3)}
+  else if (ci == 2) { alert("LOAD2"); Mload2(parseInt(op1,16),op2,op3)}
+  else if (ci == 3) { alert("STORY"); Mstore(parseInt(op1,16),op2,op3)}
+  else if (ci == 4) { alert("MOV"); Mmov(parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 5) { alert("ADD"); Madd(parseInt(op1,16),parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 6) { alert("DIV"); Mdiv(parseInt(op1,16),parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 7) { alert("OR"); 
+Mor(parseInt(op1,16),parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 8) { alert("AND"); 
+Mand(parseInt(op1,16),parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 9) { alert("XOR"); 
+Mxor(parseInt(op1,16),parseInt(op2,16),parseInt(op3,16))}
+  else if (ci == 10) { alert("ROTATE"); Mrotate(parseInt(op1,16),parseInt(op3,16))}
+  else if (ci == 11) { 
+alert("JUMP"); Mjump(parseInt(op1,16),op2,op3)} 
+  else if (ci == 12) { alert("HALT");Mhalt()}
+  else { alert('недопустимая инструкция '+ci);}
+  
+}
+
+
+
+</script>
+ </head>
+    <body onload = "createDiv()">
+       
+    </body>
+</html>
